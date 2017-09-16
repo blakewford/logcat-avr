@@ -26,6 +26,8 @@
 
 #include "log_portability.h"
 
+int gettid();
+
 __BEGIN_DECLS
 
 /* Union, sock or fd of zero is not allowed unless static initialized */

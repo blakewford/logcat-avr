@@ -99,7 +99,8 @@ static int logdAvailable(log_id_t logId) {
       return -EPERM;
     }
   }
-  if (access("/dev/socket/logdw", W_OK) == 0) {
+//  if (access("/dev/socket/logdw", W_OK) == 0) {
+  {
     return 0;
   }
   return -EBADF;
@@ -583,7 +584,10 @@ static int logdRead(struct android_log_logger_list* logger_list,
   struct sigaction old_sigaction;
   unsigned int old_alarm = 0;
 
-  ret = logdOpen(logger_list, transp);
+//  ret = logdOpen(logger_list, transp);
+  logdOpen(logger_list, transp);
+  ret = 0;
+
   if (ret < 0) {
     return ret;
   }
@@ -610,7 +614,24 @@ static int logdRead(struct android_log_logger_list* logger_list,
   }
 
   /* NOTE: SOCK_SEQPACKET guarantees we read exactly one full entry */
-  ret = recv(ret, log_msg, LOGGER_ENTRY_MAX_LEN, 0);
+  // ret = recv(ret, log_msg, LOGGER_ENTRY_MAX_LEN, 0);
+
+  char Priority = (char)3; //D
+  const char* message = " MDnsDS:MDnsSdListener::Hander starting up ";
+  ret = sizeof(struct logger_entry) + strlen(message);
+
+  // ASSERT(ret < LOGGER_ENTRY_MAX_LEN);
+
+  log_msg->entry_v1.len = strlen(message);
+  log_msg->entry_v1.pid = getpid();
+  log_msg->entry_v1.tid = gettid();
+  log_msg->entry_v1.sec = time(NULL);
+
+  usleep(1000*1000);
+
+  memcpy(log_msg->entry_v1.msg, &Priority, 1); //First char is always priority
+  memcpy(log_msg->entry_v1.msg+1, message+1, strlen(message));
+
   e = errno;
 
   if (new_alarm) {

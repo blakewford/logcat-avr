@@ -18,6 +18,8 @@
 //#define LOG_NDEBUG 0
 
 #define _GNU_SOURCE 1
+int asprintf(char **strp, const char *fmt, ...);
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>

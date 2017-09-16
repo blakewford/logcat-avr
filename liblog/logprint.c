@@ -1646,10 +1646,10 @@ LIBLOG_ABI_PUBLIC char* android_log_formatLogLine(AndroidLogFormat* p_format,
  */
 #if !defined(__MINGW32__)
 #if (FAKE_LOG_DEVICE == 0)
-#ifndef __BIONIC__
-#warning \
-    "This code assumes that getpwuid is thread safe, only true with Bionic!"
-#endif
+// #ifndef __BIONIC__
+// #warning \
+//    "This code assumes that getpwuid is thread safe, only true with Bionic!"
+// #endif
 #endif
       struct passwd* pwd = getpwuid(entry->uid);
       if (pwd && (strlen(pwd->pw_name) <= 5)) {

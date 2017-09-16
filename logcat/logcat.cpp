@@ -41,7 +41,7 @@
 #include <vector>
 
 #include <android-base/file.h>
-#include <android-base/properties.h>
+//#include <android-base/properties.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
 #include <cutils/sched_policy.h>
@@ -56,6 +56,8 @@
 #include <pcrecpp.h>
 
 #define DEFAULT_MAX_ROTATED_LOGS 4
+
+#define __printflike(x,y)
 
 struct log_device_t {
     const char* device;
@@ -1209,12 +1211,13 @@ static int __logcat(android_logcat_context_internal* context) {
                 // it goes to androidboot.console (e.g. tty)
                 {
                     // if not in emulator, exit quietly
-                    if (false == android::base::GetBoolProperty(QEMU_PROPERTY, false)) {
+                    //if (false == android::base::GetBoolProperty(QEMU_PROPERTY, false)) {
                         context->retval = EXIT_SUCCESS;
                         goto exit;
-                    }
+                    //}
 
-                    std::string cmdline = android::base::GetProperty(QEMU_CMDLINE, "");
+                    //std::string cmdline = android::base::GetProperty(QEMU_CMDLINE, "");
+                    std::string cmdline;
                     if (cmdline.empty()) {
                         android::base::ReadFileToString("/proc/cmdline", &cmdline);
                     }
