@@ -1,11 +1,11 @@
 CPP=logcat.cpp getopt_long.cpp logcat_system.cpp
 
-logcat: liblogcat.a
-	clang++ -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -L../base/out/linux -lbase -L../libcutils/out/not_windows -lcutils -lpthread
+#logcat: liblogcat.a
+#	avr-gcc -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat -L../liblog/out/avr -llog -L../base/out/avr -lbase -L../libcutils/out/avr -lcutils
 
 liblogcat.a: $(CPP)
 	-mkdir out
-	clang -gdwarf-4 -c -std=c++1y -fPIC $(CPP) -I../include -Iinclude -I../base/include -lrt
+	avr-gcc -gdwarf-4 -c -include stdlib.h -std=c++1y $(CPP) -I../include/port -I../include -Iinclude -I../base/include
 	mv *.o out
 	ar rcs out/$@ out/*.o
 
