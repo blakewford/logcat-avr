@@ -525,7 +525,7 @@ static int logdOpen(struct android_log_logger_list* logger_list,
       remaining -= ret;
       cp += ret;
     }
-    ret = snprintf(cp, remaining, " start=%" PRIu32 ".%09" PRIu32,
+    ret = snprintf(cp, remaining, " start=%lu".%09" PRIu32,
                    logger_list->start.tv_sec, logger_list->start.tv_nsec);
     ret = min(ret, remaining);
     remaining -= ret;

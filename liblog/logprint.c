@@ -772,7 +772,7 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
       eventData += 8;
       eventDataLen -= 8;
     pr_lval:
-      outCount = snprintf(outBuf, outBufLen, "%" PRId64, lval);
+      outCount = snprintf(outBuf, outBufLen, "%lld", lval);
       if (outCount < outBufLen) {
         outBuf += outCount;
         outBufLen -= outCount;
@@ -898,7 +898,7 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
               if ((lval % 1024) != 0) break;
             } while (++idx <
                      ((sizeof(suffixTable) / sizeof(suffixTable[0])) - 1));
-            outCount = snprintf(outBuf, outBufLen, "%" PRId64 "%cB", lval,
+            outCount = snprintf(outBuf, outBufLen, "%lld%cB", lval,
                                 suffixTable[idx]);
           } else {
             outCount = snprintf(outBuf, outBufLen, "B");
@@ -927,15 +927,17 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
           break;
         case TYPE_MONOTONIC: {
           static const uint64_t minute = 60;
-          static const uint64_t hour = 60 * minute;
-          static const uint64_t day = 24 * hour;
+//          static const uint64_t hour = 60 * minute;
+//          static const uint64_t day = 24 * hour;
+          const uint64_t hour = 60 * minute;
+          const uint64_t day = 24 * hour;
 
           /* Repaint as unsigned seconds, minutes, hours ... */
           outBuf -= outCount;
           outBufLen += outCount;
           uint64_t val = lval;
           if (val >= day) {
-            outCount = snprintf(outBuf, outBufLen, "%" PRIu64 "d ", val / day);
+            outCount = snprintf(outBuf, outBufLen, "%llud ", val / day);
             if (outCount >= outBufLen) break;
             outBuf += outCount;
             outBufLen -= outCount;
@@ -943,7 +945,7 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
           }
           if (val >= minute) {
             if (val >= hour) {
-              outCount = snprintf(outBuf, outBufLen, "%" PRIu64 ":",
+              outCount = snprintf(outBuf, outBufLen, "%llu:",
                                   (val / hour) % (day / hour));
               if (outCount >= outBufLen) break;
               outBuf += outCount;
@@ -951,14 +953,14 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
             }
             outCount =
                 snprintf(outBuf, outBufLen,
-                         (val >= hour) ? "%02" PRIu64 ":" : "%" PRIu64 ":",
+                         (val >= hour) ? "%02llu:" : "%llu:",
                          (val / minute) % (hour / minute));
             if (outCount >= outBufLen) break;
             outBuf += outCount;
             outBufLen -= outCount;
           }
           outCount = snprintf(outBuf, outBufLen,
-                              (val >= minute) ? "%02" PRIu64 : "%" PRIu64 "s",
+                              (val >= minute) ? "%02llu" : "%llus",
                               val % minute);
         } break;
         case TYPE_ALLOCATIONS:
@@ -1074,7 +1076,7 @@ LIBLOG_ABI_PUBLIC int android_log_processBinaryLogBuffer(
   if (entry->tag == NULL) {
     size_t tagLen;
 
-    tagLen = snprintf(messageBuf, messageBufLen, "[%" PRIu32 "]", tagIndex);
+    tagLen = snprintf(messageBuf, messageBufLen, "[%lu]", tagIndex);
     if (tagLen >= (size_t)messageBufLen) {
       tagLen = messageBufLen - 1;
     }

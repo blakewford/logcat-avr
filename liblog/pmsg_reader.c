@@ -578,7 +578,8 @@ __android_log_pmsg_file_read(log_id_t logId, char prio, const char* prefix,
       if (len) {
         /* Buffer contains enforced trailing nul just beyond length */
         ssize_t r;
-        *strchr(names->name, ':') = '/'; /* Convert back to filename */
+        char* sep = strchr(names->name, ':');
+        *sep = '/'; /* Convert back to filename */
         r = (*fn)(names->id, names->prio, names->name, buf, len, arg);
         if ((ret >= 0) && (r > 0)) {
           if (ret == SSIZE_MAX) {
