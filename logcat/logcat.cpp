@@ -44,8 +44,6 @@
 //#include <android-base/properties.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
-#include <cutils/sched_policy.h>
-#include <cutils/sockets.h>
 #include <log/event_tag_map.h>
 #include <log/getopt.h>
 #include <log/logcat.h>
@@ -53,11 +51,10 @@
 #include <private/android_logger.h>
 #include <system/thread_defs.h>
 
-#include <pcrecpp.h>
-
 #define DEFAULT_MAX_ROTATED_LOGS 4
 
 #define __printflike(x,y)
+extern "C" int set_sched_policy(int tid, int policy);
 
 struct log_device_t {
     const char* device;
@@ -112,7 +109,6 @@ struct android_logcat_context_internal {
     size_t outByteCount;
     int printBinary;
     int devCount;  // >1 means multiple
-    pcrecpp::RE* regex;
     log_device_t* devices;
     EventTagMap* eventTagMap;
     // 0 means "infinite"
@@ -302,15 +298,6 @@ void printBinary(android_logcat_context_internal* context, struct log_msg* buf) 
     TEMP_FAILURE_RETRY(write(context->output_fd, buf, size));
 }
 
-static bool regexOk(android_logcat_context_internal* context,
-                    const AndroidLogEntry& entry) {
-    if (!context->regex) return true;
-
-    std::string messageString(entry.message, entry.messageLen);
-
-    return context->regex->PartialMatch(messageString);
-}
-
 static void processBuffer(android_logcat_context_internal* context,
                           log_device_t* dev, struct log_msg* buf) {
     int bytesWritten = 0;
@@ -336,7 +323,7 @@ static void processBuffer(android_logcat_context_internal* context,
     if (android_log_shouldPrintLine(
             context->logformat, std::string(entry.tag, entry.tagLen).c_str(),
             entry.priority)) {
-        bool match = regexOk(context, entry);
+        bool match = true;
 
         context->printCount += match;
         if (match || context->printItAnyways) {
@@ -381,7 +368,7 @@ static void setupOutputAndSchedulingPolicy(
     if (blocking) {
         // Lower priority and set to batch scheduling if we are saving
         // the logs into files and taking continuous content.
-        if ((set_sched_policy(0, SP_BACKGROUND) < 0) && context->error) {
+        if ((set_sched_policy(0, 0) < 0) && context->error) {
             fprintf(context->error,
                     "failed to set background scheduling policy\n");
         }
@@ -1017,8 +1004,7 @@ static int __logcat(android_logcat_context_internal* context) {
                 break;
 
             case 'e':
-                context->regex = new pcrecpp::RE(optctx.optarg);
-                break;
+               break;
 
             case 'm': {
                 if (!getSizeTArg(optctx.optarg, &context->maxCount)) {
@@ -1323,7 +1309,7 @@ static int __logcat(android_logcat_context_internal* context) {
                      "Cannot use -m (--max-count) and -t together\n");
         goto exit;
     }
-    if (context->printItAnyways && (!context->regex || !context->maxCount)) {
+    if (context->printItAnyways && (true || !context->maxCount)) {
         // One day it would be nice if --print -v color and --regex <expr>
         // could play with each other and show regex highlighted content.
         // clang-format off
@@ -1823,7 +1809,6 @@ int android_logcat_destroy(android_logcat_context* ctx) {
         sched_yield();
     }
 
-    delete context->regex;
     context->argv_hold.clear();
     context->args.clear();
     context->envp_hold.clear();
