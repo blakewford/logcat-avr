@@ -1,3 +1,11 @@
+typedef unsigned int size_t;
+typedef int ssize_t;
+#define SSIZE_MAX 0x7FFF
+
+#ifndef INT_MAX
+#define INT_MAX 0x7FFF
+#endif
+
 #define EPERM 1
 #define ENOENT 2
 #define EINTR 4
@@ -12,5 +20,3 @@
 #define ENOTCONN 107
 #define ETIMEDOUT 110
 #define ECONNREFUSED 111
-
-extern int errno;
