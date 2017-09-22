@@ -262,8 +262,10 @@ static ssize_t send_log_msg(struct android_log_logger* logger, const char* msg,
   size_t len;
   char* cp;
   int errno_save = 0;
-  int sock = socket_local_client("logd", ANDROID_SOCKET_NAMESPACE_RESERVED,
-                                 SOCK_STREAM);
+//  int sock = socket_local_client("logd", ANDROID_SOCKET_NAMESPACE_RESERVED,
+//                                 SOCK_STREAM);
+
+  int sock = 0;
   if (sock < 0) {
     return sock;
   }
@@ -301,10 +303,10 @@ static ssize_t send_log_msg(struct android_log_logger* logger, const char* msg,
       break;
     }
 
-    if (!(p.revents & POLLIN)) {
-      ret = 0;
-      break;
-    }
+//    if (!(p.revents & POLLIN)) {
+//      ret = 0;
+//      break;
+//    }
   }
 
   if (ret >= 0) {
