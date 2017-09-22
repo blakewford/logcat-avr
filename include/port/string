@@ -1,9 +1,0 @@
-#ifndef STRING
-namespace std
-{
-    class string
-    {
-    };
-}
-#define STRING
-#endif

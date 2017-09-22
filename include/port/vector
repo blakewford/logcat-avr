@@ -1,9 +1,0 @@
-#ifndef VECTOR
-namespace std
-{
-    class vector
-    {
-    };
-}
-#define VECTOR
-#endif
