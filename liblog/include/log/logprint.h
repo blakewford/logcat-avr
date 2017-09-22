@@ -17,8 +17,6 @@
 #ifndef _LOGPRINT_H
 #define _LOGPRINT_H
 
-#include <pthread.h>
-
 #include <android/log.h>
 #include <log/event_tag_map.h>
 

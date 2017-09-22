@@ -15,7 +15,6 @@
 */
 
 #include <ctype.h>
-#include <pthread.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,8 +26,6 @@
 
 #include "log_portability.h"
 
-static pthread_mutex_t lock_loggable = PTHREAD_MUTEX_INITIALIZER;
-
 static int lock() {
   /*
    * If we trigger a signal handler in the middle of locked activity and the
@@ -39,11 +36,10 @@ static int lock() {
    * in less time than the system call associated with a mutex to deal with
    * the contention.
    */
-  return pthread_mutex_trylock(&lock_loggable);
+  return 0;
 }
 
 static void unlock() {
-  pthread_mutex_unlock(&lock_loggable);
 }
 
 struct cache {
@@ -313,7 +309,6 @@ LIBLOG_ABI_PUBLIC int __android_log_is_debuggable() {
  * Use a separate lock from is_loggable to keep contention down b/25563384.
  */
 struct cache2_char {
-  pthread_mutex_t lock;
   uint32_t serial;
   const char* key_persist;
   struct cache_char cache_persist;
@@ -327,11 +322,6 @@ static inline unsigned char do_cache2_char(struct cache2_char* self) {
   int change_detected;
   unsigned char c;
 
-  if (pthread_mutex_trylock(&self->lock)) {
-    /* We are willing to accept some race in this context */
-    return self->evaluate(self);
-  }
-
   change_detected = check_cache(&self->cache_persist.cache) ||
                     check_cache(&self->cache_ro.cache);
   current_serial = __system_property_area_serial();
@@ -344,8 +334,6 @@ static inline unsigned char do_cache2_char(struct cache2_char* self) {
     self->serial = current_serial;
   }
   c = self->evaluate(self);
-
-  pthread_mutex_unlock(&self->lock);
 
   return c;
 }
@@ -366,7 +354,7 @@ static unsigned char evaluate_persist_ro(const struct cache2_char* self) {
  */
 LIBLOG_ABI_PUBLIC clockid_t android_log_clockid() {
   static struct cache2_char clockid = {
-    PTHREAD_MUTEX_INITIALIZER, 0,
+    0,
     "persist.logd.timestamp",  { { NULL, -1 }, '\0' },
     "ro.logd.timestamp",       { { NULL, -1 }, '\0' },
     evaluate_persist_ro
@@ -388,7 +376,7 @@ static unsigned char evaluate_security(const struct cache2_char* self) {
 
 LIBLOG_ABI_PUBLIC int __android_log_security() {
   static struct cache2_char security = {
-    PTHREAD_MUTEX_INITIALIZER, 0,
+    0,
     "persist.logd.security",   { { NULL, -1 }, BOOLEAN_FALSE },
     "ro.device_owner",         { { NULL, -1 }, BOOLEAN_FALSE },
     evaluate_security
@@ -522,7 +510,6 @@ LIBLOG_ABI_PRIVATE bool __android_logger_valid_buffer_size(unsigned long value) 
 }
 
 struct cache2_property_size {
-  pthread_mutex_t lock;
   uint32_t serial;
   const char* key_persist;
   struct cache_property cache_persist;
@@ -537,11 +524,6 @@ static inline unsigned long do_cache2_property_size(
   int change_detected;
   unsigned long v;
 
-  if (pthread_mutex_trylock(&self->lock)) {
-    /* We are willing to accept some race in this context */
-    return self->evaluate(self);
-  }
-
   change_detected = check_cache(&self->cache_persist.cache) ||
                     check_cache(&self->cache_ro.cache);
   current_serial = __system_property_area_serial();
@@ -554,8 +536,6 @@ static inline unsigned long do_cache2_property_size(
     self->serial = current_serial;
   }
   v = self->evaluate(self);
-
-  pthread_mutex_unlock(&self->lock);
 
   return v;
 }
@@ -602,7 +582,7 @@ LIBLOG_ABI_PRIVATE unsigned long __android_logger_get_buffer_size(log_id_t logId
   static const char global_default[] = "ro.logd.size";      /* BoardConfig.mk */
   static struct cache2_property_size global = {
     /* clang-format off */
-    PTHREAD_MUTEX_INITIALIZER, 0,
+    0,
     global_tunable, { { NULL, -1 }, {} },
     global_default, { { NULL, -1 }, {} },
     evaluate_property_get_size
@@ -612,7 +592,7 @@ LIBLOG_ABI_PRIVATE unsigned long __android_logger_get_buffer_size(log_id_t logId
   char key_ro[strlen(global_default) + strlen(".security") + 1];
   struct cache2_property_size local = {
     /* clang-format off */
-    PTHREAD_MUTEX_INITIALIZER, 0,
+    0,
     key_persist, { { NULL, -1 }, {} },
     key_ro,      { { NULL, -1 }, {} },
     evaluate_property_get_size

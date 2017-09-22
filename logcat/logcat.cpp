@@ -21,7 +21,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
-#include <pthread.h>
 #include <sched.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -93,7 +92,6 @@ struct android_logcat_context_internal {
     int fds[2];    // From popen call
     FILE* output;  // everything writes to fileno(output), buffer unused
     FILE* error;   // unless error == output.
-    pthread_t thr;
     volatile std::atomic_bool stop;  // quick exit flag
     volatile std::atomic_bool thread_stopped;
     bool stderr_null;    // shell "2>/dev/null"
@@ -1709,20 +1707,8 @@ int android_logcat_run_command_thread(android_logcat_context ctx,
         goto exit;
     }
 
-    pthread_attr_t attr;
-    if (pthread_attr_init(&attr)) {
-        save_errno = errno;
-        goto close_exit;
-    }
-
     struct sched_param param;
     memset(&param, 0, sizeof(param));
-    pthread_attr_setschedparam(&attr, &param);
-    pthread_attr_setschedpolicy(&attr, SCHED_BATCH);
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) {
-        save_errno = errno;
-        goto pthread_attr_exit;
-    }
 
     context->stop = false;
     context->thread_stopped = false;
@@ -1758,12 +1744,6 @@ int android_logcat_run_command_thread(android_logcat_context ctx,
     fflush(stderr);
 #endif
     context->retval = EXIT_SUCCESS;
-    if (pthread_create(&context->thr, &attr,
-                       (void*(*)(void*))__logcat, context)) {
-        save_errno = errno;
-        goto argv_exit;
-    }
-    pthread_attr_destroy(&attr);
 
     return context->fds[0];
 
@@ -1772,8 +1752,6 @@ argv_exit:
     context->args.clear();
     context->envp_hold.clear();
     context->envs.clear();
-pthread_attr_exit:
-    pthread_attr_destroy(&attr);
 close_exit:
     close(context->fds[0]);
     context->fds[0] = -1;
