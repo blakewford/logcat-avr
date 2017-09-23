@@ -1355,7 +1355,7 @@ static int __logcat(android_logcat_context_internal* context) {
     }
 
     if (!hasSetLogFormat) {
-        const char* logFormat;// = android::getenv(context, "ANDROID_PRINTF_LOG");
+        const char* logFormat = "";
 
         if (!!logFormat) {
             std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
