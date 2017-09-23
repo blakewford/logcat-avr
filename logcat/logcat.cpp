@@ -246,16 +246,16 @@ static void rotateLogs(android_logcat_context_internal* context) {
             : 0;
 
     for (int i = context->maxRotatedLogs; i > 0; i--) {
-        std::string file1 = android::base::StringPrintf(
-            "%s.%.*d", context->outputFileName, maxRotationCountDigits, i);
+        std::string file1;// = android::base::StringPrintf(
+//            "%s.%.*d", context->outputFileName, maxRotationCountDigits, i);
 
         std::string file0;
         if (!(i - 1)) {
-            file0 = android::base::StringPrintf("%s", context->outputFileName);
+//            file0 = android::base::StringPrintf("%s", context->outputFileName);
         } else {
-            file0 =
-                android::base::StringPrintf("%s.%.*d", context->outputFileName,
-                                            maxRotationCountDigits, i - 1);
+//           file0 =
+//                android::base::StringPrintf("%s.%.*d", context->outputFileName,
+//                                            maxRotationCountDigits, i - 1);
         }
 
         if (!file0.length() || !file1.length()) {
@@ -659,10 +659,10 @@ static log_time lastLogTime(const char* outputFileName) {
         file_name += "/";
         file_name += dp->d_name;
         std::string file;
-        if (!android::base::ReadFileToString(file_name, &file)) continue;
+        if (false/*!android::base::ReadFileToString(file_name, &file)*/) continue;
 
         bool found = false;
-        for (const auto& line : android::base::Split(file, "\n")) {
+/*        for (const auto& line : android::base::Split(file, "\n")) {
             log_time t(log_time::EPOCH);
             char* ep = parseTime(t, line.c_str());
             if (!ep || (*ep != ' ')) continue;
@@ -681,7 +681,7 @@ static log_time lastLogTime(const char* outputFileName) {
                 retval = t;
                 found = true;
             }
-        }
+        }*/
         // We count on the basename file to be the definitive end, so stop here.
         if (!dp->d_name[len] && found) break;
     }
@@ -1345,17 +1345,17 @@ static int __logcat(android_logcat_context_internal* context) {
             goto exit;
         }
 
-        std::string file_name = android::base::StringPrintf(
-                                        "%s.id", context->outputFileName);
+//        std::string file_name = android::base::StringPrintf(
+//                                        "%s.id", context->outputFileName);
         std::string file;
-        bool file_ok = android::base::ReadFileToString(file_name, &file);
-        android::base::WriteStringToFile(setId, file_name, S_IRUSR | S_IWUSR,
-                                         getuid(), getgid());
+        bool file_ok;// = android::base::ReadFileToString(file_name, &file);
+//        android::base::WriteStringToFile(setId, file_name, S_IRUSR | S_IWUSR,
+//                                         getuid(), getgid());
         if (!file_ok || !file.compare(setId)) setId = nullptr;
     }
 
     if (!hasSetLogFormat) {
-        const char* logFormat = android::getenv(context, "ANDROID_PRINTF_LOG");
+        const char* logFormat;// = android::getenv(context, "ANDROID_PRINTF_LOG");
 
         if (!!logFormat) {
             std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
@@ -1446,11 +1446,11 @@ static int __logcat(android_logcat_context_internal* context) {
                     std::string file;
 
                     if (!i) {
-                        file = android::base::StringPrintf(
-                            "%s", context->outputFileName);
+//                        file = android::base::StringPrintf(
+//                            "%s", context->outputFileName);
                     } else {
-                        file = android::base::StringPrintf("%s.%.*d",
-                            context->outputFileName, maxRotationCountDigits, i);
+//                        file = android::base::StringPrintf("%s.%.*d",
+//                            context->outputFileName, maxRotationCountDigits, i);
                     }
 
                     if (!file.length()) {
@@ -1484,14 +1484,14 @@ static int __logcat(android_logcat_context_internal* context) {
             if ((size < 0) || (readable < 0)) {
                 reportErrorName(&getSizeFail, dev->device, allSelected);
             } else {
-                std::string str = android::base::StringPrintf(
-                       "%s: ring buffer is %ld%sb (%ld%sb consumed),"
-                         " max entry is %db, max payload is %db\n",
-                       dev->device,
-                       value_of_size(size), multiplier_of_size(size),
-                       value_of_size(readable), multiplier_of_size(readable),
-                       (int)LOGGER_ENTRY_MAX_LEN,
-                       (int)LOGGER_ENTRY_MAX_PAYLOAD);
+                std::string str;// = android::base::StringPrintf(
+//                       "%s: ring buffer is %ld%sb (%ld%sb consumed),"
+//                         " max entry is %db, max payload is %db\n",
+//                       dev->device,
+//                       value_of_size(size), multiplier_of_size(size),
+//                       value_of_size(readable), multiplier_of_size(readable),
+//                       (int)LOGGER_ENTRY_MAX_LEN,
+//                       (int)LOGGER_ENTRY_MAX_PAYLOAD);
                 TEMP_FAILURE_RETRY(write(context->output_fd,
                                          str.data(), str.length()));
             }
