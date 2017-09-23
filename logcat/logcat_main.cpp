@@ -22,7 +22,7 @@
 int main(int argc, char** argv, char** envp) {
     android_logcat_context ctx = create_android_logcat();
     if (!ctx) return -1;
-    signal(SIGPIPE, exit);
+//    signal(SIGPIPE, exit);
     int retval = android_logcat_run_command(ctx, -1, -1, argc, argv, envp);
     int ret = android_logcat_destroy(&ctx);
     if (!ret) ret = retval;
