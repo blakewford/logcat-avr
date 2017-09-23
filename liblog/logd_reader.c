@@ -213,24 +213,24 @@ LIBLOG_WEAK int socket_make_sockaddr_un(const char* name, int namespaceId,
  */
 LIBLOG_WEAK int socket_local_client_connect(int fd, const char* name,
                                             int namespaceId, int type __unused) {
-  struct sockaddr_un addr;
-  socklen_t alen;
-  int err;
+//  struct sockaddr_un addr;
+//  socklen_t alen;
+//  int err;
 
-  err = socket_make_sockaddr_un(name, namespaceId, &addr, &alen);
+//  err = socket_make_sockaddr_un(name, namespaceId, &addr, &alen);
 
-  if (err < 0) {
-    goto error;
-  }
+//  if (err < 0) {
+//    goto error;
+//  }
 
-  if (connect(fd, (struct sockaddr*)&addr, alen) < 0) {
-    goto error;
-  }
+//  if (connect(fd, (struct sockaddr*)&addr, alen) < 0) {
+//    goto error;
+//  }
 
   return fd;
 
-error:
-  return -1;
+//error:
+//  return -1;
 }
 
 /**
@@ -241,13 +241,13 @@ LIBLOG_WEAK int socket_local_client(const char* name, int namespaceId,
                                     int type) {
   int s;
 
-  s = socket(AF_LOCAL, type, 0);
-  if (s < 0) return -1;
+//  s = socket(AF_LOCAL, type, 0);
+//  if (s < 0) return -1;
 
-  if (0 > socket_local_client_connect(s, name, namespaceId, type)) {
-    close(s);
-    return -1;
-  }
+//  if (0 > socket_local_client_connect(s, name, namespaceId, type)) {
+//    close(s);
+//    return -1;
+//  }
 
   return s;
 }
@@ -259,68 +259,68 @@ LIBLOG_WEAK int socket_local_client(const char* name, int namespaceId,
 static ssize_t send_log_msg(struct android_log_logger* logger, const char* msg,
                             char* buf, size_t buf_size) {
   ssize_t ret;
-  size_t len;
-  char* cp;
-  int errno_save = 0;
+//  size_t len;
+//  char* cp;
+//  int errno_save = 0;
 //  int sock = socket_local_client("logd", ANDROID_SOCKET_NAMESPACE_RESERVED,
 //                                 SOCK_STREAM);
 
-  int sock = 0;
-  if (sock < 0) {
-    return sock;
-  }
+//  int sock = 0;
+//  if (sock < 0) {
+//    return sock;
+//  }
 
-  if (msg) {
-    snprintf(buf, buf_size, msg, logger ? logger->logId : (unsigned)-1);
-  }
+//  if (msg) {
+//    snprintf(buf, buf_size, msg, logger ? logger->logId : (unsigned)-1);
+//  }
 
-  len = strlen(buf) + 1;
-  ret = TEMP_FAILURE_RETRY(write(sock, buf, len));
-  if (ret <= 0) {
-    goto done;
-  }
+//  len = strlen(buf) + 1;
+//  ret = TEMP_FAILURE_RETRY(write(sock, buf, len));
+//  if (ret <= 0) {
+//    goto done;
+//  }
 
-  len = buf_size;
-  cp = buf;
-  while ((ret = TEMP_FAILURE_RETRY(read(sock, cp, len))) > 0) {
-    struct pollfd p;
+//  len = buf_size;
+//  cp = buf;
+//  while ((ret = TEMP_FAILURE_RETRY(read(sock, cp, len))) > 0) {
+//    struct pollfd p;
 
-    if (((size_t)ret == len) || (buf_size < PAGE_SIZE)) {
-      break;
-    }
+//    if (((size_t)ret == len) || (buf_size < PAGE_SIZE)) {
+//      break;
+//    }
 
-    len -= ret;
-    cp += ret;
+//    len -= ret;
+//    cp += ret;
 
-    memset(&p, 0, sizeof(p));
-    p.fd = sock;
-    p.events = POLLIN;
+//    memset(&p, 0, sizeof(p));
+//    p.fd = sock;
+//    p.events = POLLIN;
 
     /* Give other side 20ms to refill pipe */
-    ret = TEMP_FAILURE_RETRY(poll(&p, 1, 20));
+//    ret = TEMP_FAILURE_RETRY(poll(&p, 1, 20));
 
-    if (ret <= 0) {
-      break;
-    }
+//    if (ret <= 0) {
+//      break;
+//    }
 
 //    if (!(p.revents & POLLIN)) {
 //      ret = 0;
 //      break;
 //    }
-  }
+//  }
 
-  if (ret >= 0) {
-    ret += buf_size - len;
-  }
+//  if (ret >= 0) {
+//    ret += buf_size - len;
+//  }
 
-done:
-  if ((ret == -1) && errno) {
-    errno_save = errno;
-  }
-  close(sock);
-  if (errno_save) {
-    errno = errno_save;
-  }
+//done:
+//  if ((ret == -1) && errno) {
+//    errno_save = errno;
+//  }
+//  close(sock);
+//  if (errno_save) {
+//    errno = errno_save;
+//  }
   return ret;
 }
 
@@ -463,117 +463,117 @@ static void caught_signal(int signum __unused) {
 
 static int logdOpen(struct android_log_logger_list* logger_list,
                     struct android_log_transport_context* transp) {
-  struct android_log_logger* logger;
-  struct sigaction ignore;
-  struct sigaction old_sigaction;
-  unsigned int old_alarm = 0;
-  char buffer[256], *cp, c;
+//  struct android_log_logger* logger;
+//  struct sigaction ignore;
+//  struct sigaction old_sigaction;
+//  unsigned int old_alarm = 0;
+//  char buffer[256], *cp, c;
   int e, ret, remaining, sock;
 
-  if (!logger_list) {
-    return -EINVAL;
-  }
+//  if (!logger_list) {
+//    return -EINVAL;
+//  }
 
-  sock = atomic_load(&transp->context.sock);
-  if (sock > 0) {
-    return sock;
-  }
+//  sock = atomic_load(&transp->context.sock);
+//  if (sock > 0) {
+//    return sock;
+//  }
 
-  sock = socket_local_client("logdr", ANDROID_SOCKET_NAMESPACE_RESERVED,
-                             SOCK_SEQPACKET);
-  if (sock == 0) {
+//  sock = socket_local_client("logdr", ANDROID_SOCKET_NAMESPACE_RESERVED,
+//                             SOCK_SEQPACKET);
+//  if (sock == 0) {
     /* Guarantee not file descriptor zero */
-    int newsock = socket_local_client(
-        "logdr", ANDROID_SOCKET_NAMESPACE_RESERVED, SOCK_SEQPACKET);
-    close(sock);
-    sock = newsock;
-  }
-  if (sock <= 0) {
-    if ((sock == -1) && errno) {
-      return -errno;
-    }
-    return sock;
-  }
+//    int newsock = socket_local_client(
+//        "logdr", ANDROID_SOCKET_NAMESPACE_RESERVED, SOCK_SEQPACKET);
+//    close(sock);
+//    sock = newsock;
+//  }
+//  if (sock <= 0) {
+//    if ((sock == -1) && errno) {
+//      return -errno;
+//    }
+//    return sock;
+//  }
 
-  strcpy(buffer, (logger_list->mode & ANDROID_LOG_NONBLOCK) ? "dumpAndClose"
-                                                            : "stream");
-  cp = buffer + strlen(buffer);
+//  strcpy(buffer, (logger_list->mode & ANDROID_LOG_NONBLOCK) ? "dumpAndClose"
+//                                                            : "stream");
+//  cp = buffer + strlen(buffer);
 
-  strcpy(cp, " lids");
-  cp += 5;
-  c = '=';
-  remaining = sizeof(buffer) - (cp - buffer);
-  logger_for_each(logger, logger_list) {
-    ret = snprintf(cp, remaining, "%c%u", c, logger->logId);
-    ret = min(ret, remaining);
-    remaining -= ret;
-    cp += ret;
-    c = ',';
-  }
+//  strcpy(cp, " lids");
+//  cp += 5;
+//  c = '=';
+//  remaining = sizeof(buffer) - (cp - buffer);
+//  logger_for_each(logger, logger_list) {
+//    ret = snprintf(cp, remaining, "%c%u", c, logger->logId);
+//    ret = min(ret, remaining);
+//    remaining -= ret;
+//    cp += ret;
+//    c = ',';
+//  }
 
-  if (logger_list->tail) {
-    ret = snprintf(cp, remaining, " tail=%u", logger_list->tail);
-    ret = min(ret, remaining);
-    remaining -= ret;
-    cp += ret;
-  }
+//  if (logger_list->tail) {
+//    ret = snprintf(cp, remaining, " tail=%u", logger_list->tail);
+//    ret = min(ret, remaining);
+//    remaining -= ret;
+//    cp += ret;
+//  }
 
-  if (logger_list->start.tv_sec || logger_list->start.tv_nsec) {
-    if (logger_list->mode & ANDROID_LOG_WRAP) {
+//  if (logger_list->start.tv_sec || logger_list->start.tv_nsec) {
+//    if (logger_list->mode & ANDROID_LOG_WRAP) {
       // ToDo: alternate API to allow timeout to be adjusted.
-      ret = snprintf(cp, remaining, " timeout=%u",
-                     ANDROID_LOG_WRAP_DEFAULT_TIMEOUT);
-      ret = min(ret, remaining);
-      remaining -= ret;
-      cp += ret;
-    }
-    ret = snprintf(cp, remaining, " start=%" PRIu32 ".%09" PRIu32,
-                   logger_list->start.tv_sec, logger_list->start.tv_nsec);
-    ret = min(ret, remaining);
-    remaining -= ret;
-    cp += ret;
-  }
+//      ret = snprintf(cp, remaining, " timeout=%u",
+//                     ANDROID_LOG_WRAP_DEFAULT_TIMEOUT);
+//      ret = min(ret, remaining);
+//      remaining -= ret;
+//      cp += ret;
+//    }
+//    ret = snprintf(cp, remaining, " start=%" PRIu32 ".%09" PRIu32,
+//                   logger_list->start.tv_sec, logger_list->start.tv_nsec);
+//    ret = min(ret, remaining);
+//    remaining -= ret;
+//    cp += ret;
+//  }
 
-  if (logger_list->pid) {
-    ret = snprintf(cp, remaining, " pid=%u", logger_list->pid);
-    ret = min(ret, remaining);
-    cp += ret;
-  }
+//  if (logger_list->pid) {
+//    ret = snprintf(cp, remaining, " pid=%u", logger_list->pid);
+//    ret = min(ret, remaining);
+//    cp += ret;
+//  }
 
-  if (logger_list->mode & ANDROID_LOG_NONBLOCK) {
+//  if (logger_list->mode & ANDROID_LOG_NONBLOCK) {
     /* Deal with an unresponsive logd */
-    memset(&ignore, 0, sizeof(ignore));
-    ignore.sa_handler = caught_signal;
-    sigemptyset(&ignore.sa_mask);
+//    memset(&ignore, 0, sizeof(ignore));
+//    ignore.sa_handler = caught_signal;
+//    sigemptyset(&ignore.sa_mask);
     /* particularily useful if tombstone is reporting for logd */
-    sigaction(SIGALRM, &ignore, &old_sigaction);
-    old_alarm = alarm(30);
-  }
-  ret = write(sock, buffer, cp - buffer);
-  e = errno;
-  if (logger_list->mode & ANDROID_LOG_NONBLOCK) {
-    if (e == EINTR) {
-      e = ETIMEDOUT;
-    }
-    alarm(old_alarm);
-    sigaction(SIGALRM, &old_sigaction, NULL);
-  }
+//    sigaction(SIGALRM, &ignore, &old_sigaction);
+//    old_alarm = alarm(30);
+//  }
+//  ret = write(sock, buffer, cp - buffer);
+//  e = errno;
+//  if (logger_list->mode & ANDROID_LOG_NONBLOCK) {
+//    if (e == EINTR) {
+//      e = ETIMEDOUT;
+//    }
+//    alarm(old_alarm);
+//    sigaction(SIGALRM, &old_sigaction, NULL);
+//  }
 
-  if (ret <= 0) {
-    close(sock);
-    if ((ret == -1) && e) {
-      return -e;
-    }
-    if (ret == 0) {
-      return -EIO;
-    }
-    return ret;
-  }
+//  if (ret <= 0) {
+//    close(sock);
+//    if ((ret == -1) && e) {
+//      return -e;
+//    }
+//    if (ret == 0) {
+//      return -EIO;
+//    }
+//    return ret;
+//  }
 
-  ret = atomic_exchange(&transp->context.sock, sock);
-  if ((ret > 0) && (ret != sock)) {
-    close(ret);
-  }
+//  ret = atomic_exchange(&transp->context.sock, sock);
+//  if ((ret > 0) && (ret != sock)) {
+//    close(ret);
+//  }
   return sock;
 }
 
@@ -582,8 +582,8 @@ static int logdRead(struct android_log_logger_list* logger_list,
                     struct android_log_transport_context* transp,
                     struct log_msg* log_msg) {
   int ret, e;
-  struct sigaction ignore;
-  struct sigaction old_sigaction;
+//  struct sigaction ignore;
+//  struct sigaction old_sigaction;
   unsigned int old_alarm = 0;
 
 //  ret = logdOpen(logger_list, transp);
@@ -607,11 +607,11 @@ static int logdRead(struct android_log_logger_list* logger_list,
       new_alarm = 30;
     }
 
-    memset(&ignore, 0, sizeof(ignore));
-    ignore.sa_handler = caught_signal;
-    sigemptyset(&ignore.sa_mask);
+//    memset(&ignore, 0, sizeof(ignore));
+//    ignore.sa_handler = caught_signal;
+//    sigemptyset(&ignore.sa_mask);
     /* particularily useful if tombstone is reporting for logd */
-    sigaction(SIGALRM, &ignore, &old_sigaction);
+//    sigaction(SIGALRM, &ignore, &old_sigaction);
     old_alarm = alarm(new_alarm);
   }
 
@@ -642,7 +642,7 @@ static int logdRead(struct android_log_logger_list* logger_list,
       ret = -1;
     }
     alarm(old_alarm);
-    sigaction(SIGALRM, &old_sigaction, NULL);
+//    sigaction(SIGALRM, &old_sigaction, NULL);
   }
 
   if ((ret == -1) && e) {
@@ -653,23 +653,23 @@ static int logdRead(struct android_log_logger_list* logger_list,
 
 static int logdPoll(struct android_log_logger_list* logger_list,
                     struct android_log_transport_context* transp) {
-  struct pollfd p;
+//  struct pollfd p;
 
   int ret = logdOpen(logger_list, transp);
   if (ret < 0) {
     return ret;
   }
 
-  memset(&p, 0, sizeof(p));
-  p.fd = ret;
-  p.events = POLLIN;
-  ret = poll(&p, 1, 20);
-  if ((ret > 0) && !(p.revents & POLLIN)) {
-    ret = 0;
-  }
-  if ((ret == -1) && errno) {
-    return -errno;
-  }
+//  memset(&p, 0, sizeof(p));
+//  p.fd = ret;
+//  p.events = POLLIN;
+//  ret = poll(&p, 1, 20);
+//  if ((ret > 0) && !(p.revents & POLLIN)) {
+//    ret = 0;
+//  }
+//  if ((ret == -1) && errno) {
+//    return -errno;
+//  }
   return ret;
 }
 
