@@ -889,8 +889,8 @@ static int __logcat(android_logcat_context_internal* context) {
         };
         // clang-format on
 
-        ret = getopt_long_r(argc, argv, ":cdDhLt:T:gG:sQf:r:n:v:b:BSpP:m:e:",
-                            long_options, &option_index, &optctx);
+        ret = -1;//getopt_long_r(argc, argv, ":cdDhLt:T:gG:sQf:r:n:v:b:BSpP:m:e:",
+//                            long_options, &option_index, &optctx);
         if (ret < 0) break;
 
         switch (ret) {
