@@ -1,7 +1,7 @@
 CPP=logcat.cpp getopt_long.cpp logcat_system.cpp
 
 logcat: liblogcat.a
-	clang++ -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -L../liblog/out/android -llog -L../base/out/linux -lbase
+	clang++ -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -L../liblog/out/android -llog
 
 liblogcat.a: $(CPP)
 	-mkdir out
