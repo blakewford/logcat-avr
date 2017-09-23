@@ -35,7 +35,7 @@
 #include <private/android_filesystem_config.h>
 #include <private/android_logger.h>
 
-#include "config_write.h"
+//#include "config_write.h"
 #include "log_portability.h"
 #include "logger.h"
 
@@ -62,40 +62,40 @@ LIBLOG_HIDDEN struct android_log_transport_write logdLoggerWrite = {
 static int logdOpen() {
   int i, ret = 0;
 
-  i = atomic_load(&logdLoggerWrite.context.sock);
-  if (i < 0) {
-    int sock = TEMP_FAILURE_RETRY(
-        socket(PF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0));
-    if (sock < 0) {
-      ret = -errno;
-    } else {
-      struct sockaddr_un un;
-      memset(&un, 0, sizeof(struct sockaddr_un));
-      un.sun_family = AF_UNIX;
-      strcpy(un.sun_path, "/dev/socket/logdw");
+//  i = atomic_load(&logdLoggerWrite.context.sock);
+//  if (i < 0) {
+//    int sock = TEMP_FAILURE_RETRY(
+//        socket(PF_UNIX, SOCK_DGRAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0));
+//    if (sock < 0) {
+//      ret = -errno;
+//    } else {
+//      struct sockaddr_un un;
+//      memset(&un, 0, sizeof(struct sockaddr_un));
+//      un.sun_family = AF_UNIX;
+//      strcpy(un.sun_path, "/dev/socket/logdw");
 
-      if (TEMP_FAILURE_RETRY(connect(sock, (struct sockaddr*)&un,
-                                     sizeof(struct sockaddr_un))) < 0) {
-        ret = -errno;
-        switch (ret) {
-          case -ENOTCONN:
-          case -ECONNREFUSED:
-          case -ENOENT:
-            i = atomic_exchange(&logdLoggerWrite.context.sock, ret);
-          /* FALLTHRU */
-          default:
-            break;
-        }
-        close(sock);
-      } else {
-        ret = atomic_exchange(&logdLoggerWrite.context.sock, sock);
-        if ((ret >= 0) && (ret != sock)) {
-          close(ret);
-        }
-        ret = 0;
-      }
-    }
-  }
+//      if (TEMP_FAILURE_RETRY(connect(sock, (struct sockaddr*)&un,
+//                                     sizeof(struct sockaddr_un))) < 0) {
+//        ret = -errno;
+//        switch (ret) {
+//          case -ENOTCONN:
+//          case -ECONNREFUSED:
+//          case -ENOENT:
+//            i = atomic_exchange(&logdLoggerWrite.context.sock, ret);
+//         /* FALLTHRU */
+//          default:
+//            break;
+//        }
+//        close(sock);
+//      } else {
+//        ret = atomic_exchange(&logdLoggerWrite.context.sock, sock);
+//        if ((ret >= 0) && (ret != sock)) {
+//          close(ret);
+//        }
+//        ret = 0;
+//      }
+//    }
+//  }
 
   return ret;
 }
