@@ -1,7 +1,7 @@
 CPP=logcat.cpp getopt_long.cpp logcat_system.cpp
 
-#logcat: liblogcat.a
-#	avr-gcc -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat -L../liblog/out/avr -llog
+logcat: liblogcat.a
+	avr-gcc -gdwarf-4 -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat -L../liblog/out/avr -llog
 
 liblogcat.a: $(CPP)
 	-mkdir out
