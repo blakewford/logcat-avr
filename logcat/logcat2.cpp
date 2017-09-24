@@ -12,7 +12,6 @@
 #include <log/log_read.h>
 
 #include <memory>
-#include <string>
 
 int close(int fd)
 {
@@ -243,7 +242,7 @@ static void processBuffer(android_logcat_context_internal* context,
     if ((err < 0) && !context->debug) return;
 
     if (android_log_shouldPrintLine(
-            context->logformat, std::string(entry.tag, entry.tagLen).c_str(),
+            context->logformat, NULL,
             entry.priority)) {
         bool match = true;
 
@@ -377,7 +376,9 @@ static int __logcat(android_logcat_context_internal* context) {
     }
     // Only happens if output=stdout or output=filename
     if ((context->output_fd < 0) && context->output) {
+#ifndef __AVR__
         context->output_fd = fileno(context->output);
+#endif
     }
     // Only happens if error=stdout || error=stderr
     if ((context->error_fd < 0) && context->error) {
@@ -915,22 +916,22 @@ static int __logcat(android_logcat_context_internal* context) {
     if (!hasSetLogFormat) {
         const char* logFormat = "";
 
-        if (!!logFormat) {
-            std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
-                                                           free);
-            char* sv = nullptr;  // protect against -ENOMEM above
-            char* arg = formats.get();
-            while (!!(arg = strtok_r(arg, delimiters, &sv))) {
-                err = setLogFormat(context, arg);
+//        if (!!logFormat) {
+//            std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
+//                                                           free);
+//            char* sv = nullptr;  // protect against -ENOMEM above
+//            char* arg = formats.get();
+//            while (!!(arg = strtok_r(arg, delimiters, &sv))) {
+//                err = setLogFormat(context, arg);
                 // environment should not cause crash of logcat
-                if ((err < 0) && context->error) {
+//                if ((err < 0) && context->error) {
 //                    fprintf(context->error,
 //                            "invalid format in ANDROID_PRINTF_LOG '%s'\n", arg);
-                }
-                arg = nullptr;
-                if (err > 0) hasSetLogFormat = true;
-            }
-        }
+//                }
+//                arg = nullptr;
+//                if (err > 0) hasSetLogFormat = true;
+//            }
+//        }
         if (!hasSetLogFormat) {
             setLogFormat(context, "threadtime");
         }

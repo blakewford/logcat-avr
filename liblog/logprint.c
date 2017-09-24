@@ -1860,9 +1860,13 @@ LIBLOG_ABI_PUBLIC int android_log_printLogLine(AndroidLogFormat* p_format,
 
   if (!outBuffer) return -1;
 
+#ifndef __AVR__
   do {
     ret = write(fd, outBuffer, totalLen);
   } while (ret < 0 && errno == EINTR);
+#else
+  
+#endif
 
   if (ret < 0) {
     fprintf(stderr, "+++ LOG: write failed (errno=%d)\n", errno);
