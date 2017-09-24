@@ -86,7 +86,7 @@ LIBLOG_HIDDEN void __android_log_config_write() {
      * stderr logger should be primary if we can be the only one, or if
      * already in the primary list.  Otherwise land in the persist list.
      * Remember we can be called here if we are already initialized.
-     */
+     *
     if (list_empty(&__android_log_transport_write)) {
       __android_log_add_transport(&__android_log_transport_write,
                                   &stderrLoggerWrite);
@@ -98,8 +98,8 @@ LIBLOG_HIDDEN void __android_log_config_write() {
         }
       }
       __android_log_add_transport(&__android_log_persist_write,
-                                  &stderrLoggerWrite);
-    }
+                                  &stderrLoggerWrite);*/
+//    }
   }
 }
 

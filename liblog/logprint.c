@@ -1865,7 +1865,10 @@ LIBLOG_ABI_PUBLIC int android_log_printLogLine(AndroidLogFormat* p_format,
     ret = write(fd, outBuffer, totalLen);
   } while (ret < 0 && errno == EINTR);
 #else
-  
+#define special_output_port (*((volatile char *)0x20))
+  const char *c = outBuffer;
+  for(c; *c; c++)
+    special_output_port = *c;
 #endif
 
   if (ret < 0) {
