@@ -40,7 +40,9 @@
 #include <log/logprint.h>
 
 #include "log_portability.h"
-
+#ifdef __AVR__
+#include <avr/io.h>
+#endif
 #define MS_PER_NSEC 1000000
 #define US_PER_NSEC 1000
 
@@ -1865,10 +1867,11 @@ LIBLOG_ABI_PUBLIC int android_log_printLogLine(AndroidLogFormat* p_format,
     ret = write(fd, outBuffer, totalLen);
   } while (ret < 0 && errno == EINTR);
 #else
-#define special_output_port (*((volatile char *)0x20))
   const char *c = outBuffer;
   for(c; *c; c++)
-    special_output_port = *c;
+  {
+    UDR0 = c;
+  }
 #endif
 
   if (ret < 0) {
