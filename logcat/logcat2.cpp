@@ -11,6 +11,9 @@
 #include <log/logcat.h>
 #include <log/log_read.h>
 
+#include <memory>
+#include <string>
+
 int close(int fd)
 {
     return 0;
@@ -51,7 +54,7 @@ struct android_logcat_context_internal {
 
     // library
     int fds[2];    // From popen call
-    void* output;  // everything writes to fileno(output), buffer unused
+    FILE* output;  // everything writes to fileno(output), buffer unused
     void* error;   // unless error == output.
     volatile bool stop;  // quick exit flag
     volatile bool thread_stopped;
@@ -111,16 +114,14 @@ static void logcat_panic(android_logcat_context_internal* context,
 
 static int setLogFormat(android_logcat_context_internal* context,
                         const char* formatString) {
-
-    return -1;
     AndroidLogPrintFormat format;
 
-//    format = android_log_formatFromString(formatString);
+    format = android_log_formatFromString(formatString);
 
     // invalid string?
     if (format == FORMAT_OFF) return -1;
 
-//    return android_log_setPrintFormat(context->logformat, format);
+    return android_log_setPrintFormat(context->logformat, format);
 }
 
 void reportErrorName(const char** current, const char* name,
@@ -237,26 +238,26 @@ static void processBuffer(android_logcat_context_internal* context,
         // printf(">>> pri=%d len=%d msg='%s'\n",
         //    entry.priority, entry.messageLen, entry.message);
     } else {
-//        err = android_log_processLogBuffer(&buf->entry_v1, &entry);
+        err = android_log_processLogBuffer(&buf->entry_v1, &entry);
     }
     if ((err < 0) && !context->debug) return;
 
-//    if (android_log_shouldPrintLine(
-//            context->logformat, std::string(entry.tag, entry.tagLen).c_str(),
-//            entry.priority)) {
-//        bool match = true;
+    if (android_log_shouldPrintLine(
+            context->logformat, std::string(entry.tag, entry.tagLen).c_str(),
+            entry.priority)) {
+        bool match = true;
 
-//        context->printCount += match;
-//        if (match || context->printItAnyways) {
-//            bytesWritten = android_log_printLogLine(context->logformat,
-//                                                    context->output_fd, &entry);
+        context->printCount += match;
+        if (match || context->printItAnyways) {
+            bytesWritten = android_log_printLogLine(context->logformat,
+                                                    context->output_fd, &entry);
 
-//            if (bytesWritten < 0) {
+            if (bytesWritten < 0) {
 //                logcat_panic(context, HELP_FALSE, "output error");
-//                return;
-//            }
-//        }
-//    }
+                return;
+            }
+        }
+    }
 
     context->outByteCount += bytesWritten;
 
@@ -376,14 +377,14 @@ static int __logcat(android_logcat_context_internal* context) {
     }
     // Only happens if output=stdout or output=filename
     if ((context->output_fd < 0) && context->output) {
-//        context->output_fd = fileno(context->output);
+        context->output_fd = fileno(context->output);
     }
     // Only happens if error=stdout || error=stderr
     if ((context->error_fd < 0) && context->error) {
 //        context->error_fd = fileno(context->error);
     }
 
-//    context->logformat = android_log_format_new();
+    context->logformat = android_log_format_new();
 
     if (argc == 2 && !strcmp(argv[1], "--help")) {
 //        show_help(context);
@@ -914,22 +915,22 @@ static int __logcat(android_logcat_context_internal* context) {
     if (!hasSetLogFormat) {
         const char* logFormat = "";
 
-//        if (!!logFormat) {
-//            std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
-//                                                           free);
-//            char* sv = nullptr;  // protect against -ENOMEM above
-//            char* arg = formats.get();
-//            while (!!(arg = strtok_r(arg, delimiters, &sv))) {
-//                err = setLogFormat(context, arg);
+        if (!!logFormat) {
+            std::unique_ptr<char, void (*)(void*)> formats(strdup(logFormat),
+                                                           free);
+            char* sv = nullptr;  // protect against -ENOMEM above
+            char* arg = formats.get();
+            while (!!(arg = strtok_r(arg, delimiters, &sv))) {
+                err = setLogFormat(context, arg);
                 // environment should not cause crash of logcat
-//                if ((err < 0) && context->error) {
+                if ((err < 0) && context->error) {
 //                    fprintf(context->error,
 //                            "invalid format in ANDROID_PRINTF_LOG '%s'\n", arg);
-//                }
-//                arg = nullptr;
-//                if (err > 0) hasSetLogFormat = true;
-//            }
-//        }
+                }
+                arg = nullptr;
+                if (err > 0) hasSetLogFormat = true;
+            }
+        }
         if (!hasSetLogFormat) {
             setLogFormat(context, "threadtime");
         }
@@ -978,14 +979,14 @@ static int __logcat(android_logcat_context_internal* context) {
 //    if (tail_time != log_time::EPOCH) {
 //        logger_list = android_logger_list_alloc_time(mode, tail_time, pid);
 //    } else {
-//        logger_list = android_logger_list_alloc(mode, tail_lines, pid);
+        logger_list = android_logger_list_alloc(mode, tail_lines, pid);
 //    }
     // We have three orthogonal actions below to clear, set log size and
     // get log size. All sharing the same iteration loop.
     while (dev) {
         dev->logger_list = logger_list;
-//        dev->logger = android_logger_open(logger_list,
-//                                          android_name_to_log_id(dev->device));
+        dev->logger = android_logger_open(logger_list,
+                                          android_name_to_log_id(dev->device));
         if (!dev->logger) {
             reportErrorName(&openDeviceFail, dev->device, allSelected);
             dev = dev->next;
@@ -1163,7 +1164,7 @@ static int __logcat(android_logcat_context_internal* context) {
     while (!context->stop &&
            (!context->maxCount || (context->printCount < context->maxCount))) {
         struct log_msg log_msg;
-        int ret = 1;//android_logger_list_read(logger_list, &log_msg);
+        int ret = android_logger_list_read(logger_list, &log_msg);
         if (!ret) {
 //            logcat_panic(context, HELP_FALSE, "read: unexpected EOF!\n");
             break;
