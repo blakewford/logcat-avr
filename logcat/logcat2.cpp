@@ -113,9 +113,9 @@ static void logcat_panic(android_logcat_context_internal* context,
 
 static int setLogFormat(android_logcat_context_internal* context,
                         const char* formatString) {
-    AndroidLogPrintFormat format;
+    AndroidLogPrintFormat format = FORMAT_THREADTIME;
 
-    format = android_log_formatFromString(formatString);
+//    format = android_log_formatFromString(formatString);
 
     // invalid string?
     if (format == FORMAT_OFF) return -1;
