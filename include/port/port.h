@@ -21,6 +21,6 @@ typedef int ssize_t;
 #define ETIMEDOUT 110
 #define ECONNREFUSED 111
 
-+#define __printflike(x,y)
-+extern "C" int set_sched_policy(int tid, int policy);
+#define __printflike(x,y)
+int set_sched_policy(int tid, int policy);
 

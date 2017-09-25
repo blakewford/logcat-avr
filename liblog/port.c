@@ -161,3 +161,15 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
     return NULL;
 }
+
+ssize_t write(int fd, const void *buf, size_t count)
+{
+  const char *c = buf;
+  while(count--)
+  {
+    UDR0 = c;
+    c++;
+  }
+
+  return 0;
+}
