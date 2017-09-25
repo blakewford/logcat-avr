@@ -19,11 +19,13 @@
  */
 
 #if !defined(_WIN32)
+//#include <pthread.h>
 #endif
 
 #include "logger.h"
 
 #if !defined(_WIN32)
+//static pthread_mutex_t log_init_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 LIBLOG_HIDDEN void __android_log_lock() {
@@ -32,14 +34,20 @@ LIBLOG_HIDDEN void __android_log_lock() {
    * If we trigger a signal handler in the middle of locked activity and the
    * signal handler logs a message, we could get into a deadlock state.
    */
+//  pthread_mutex_lock(&log_init_lock);
 #endif
 }
 
 LIBLOG_HIDDEN int __android_log_trylock() {
-  return 0;
+//#if !defined(_WIN32)
+//  return pthread_mutex_trylock(&log_init_lock);
+//#else
+   return 0;
+//#endif
 }
 
 LIBLOG_HIDDEN void __android_log_unlock() {
 #if !defined(_WIN32)
+//  pthread_mutex_unlock(&log_init_lock);
 #endif
 }

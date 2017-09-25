@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+//#include <pthread.h>
 #if !defined(__MINGW32__)
 #include <pwd.h>
 #endif
@@ -119,6 +120,7 @@ static const size_t MAX_SIZE_DEFAULT = 32768;
 
 static struct LogBuffer {
   struct listnode head;
+//  pthread_rwlock_t listLock;
   char* serviceName; /* Also indicates ready by having a value */
   /* Order and proximity important for memset */
   size_t number[NUMBER_OF_LOG_BUFFERS];         /* clear memset          */
@@ -133,6 +135,7 @@ static struct LogBuffer {
 static void LogBufferInit(struct LogBuffer* log) {
   size_t i;
 
+//  pthread_rwlock_wrlock(&log->listLock);
   list_init(&log->head);
   memset(log->number, 0,
          sizeof(log->number) + sizeof(log->size) + sizeof(log->totalSize));
@@ -149,12 +152,14 @@ static void LogBufferInit(struct LogBuffer* log) {
            __android_log_uid(), getpid());
   log->serviceName = strdup(buffer);
 #endif
+//  pthread_rwlock_unlock(&log->listLock);
 }
 
 static void LogBufferClear(struct LogBuffer* log) {
   size_t i;
   struct listnode* node;
 
+//  pthread_rwlock_wrlock(&log->listLock);
   memset(log->number, 0, sizeof(log->number) + sizeof(log->size));
   for (i = 0; i < NUMBER_OF_LOG_BUFFERS; ++i) {
     log->last[i] = &log->head;
@@ -166,11 +171,14 @@ static void LogBufferClear(struct LogBuffer* log) {
     list_remove(node);
     free(element);
   }
+//  pthread_rwlock_unlock(&log->listLock);
 }
 
 static inline void LogBufferFree(struct LogBuffer* log) {
+//  pthread_rwlock_wrlock(&log->listLock);
   free(log->serviceName);
   log->serviceName = NULL;
+//  pthread_rwlock_unlock(&log->listLock);
   LogBufferClear(log);
 }
 
@@ -178,6 +186,7 @@ static int LogBufferLog(struct LogBuffer* log,
                         struct LogBufferElement* element) {
   log_id_t logId = element->logId;
 
+//  pthread_rwlock_wrlock(&log->listLock);
   log->number[logId]++;
   log->size[logId] += element->len;
   log->totalSize[logId] += element->len;
@@ -219,6 +228,7 @@ static int LogBufferLog(struct LogBuffer* log,
   /* add entry to list */
   list_add_head(&log->head, &element->node);
   /* ToDo: wake up all readers */
+//  pthread_rwlock_unlock(&log->listLock);
 
   return element->len;
 }
@@ -229,6 +239,7 @@ static int LogBufferLog(struct LogBuffer* log,
  * return negative error number if failed to start binder server.
  */
 static int writeToLocalInit() {
+// pthread_attr_t attr;
   struct LogBuffer* log;
 
   if (writeToLocalAvailable(LOG_ID_MAIN) < 0) {
@@ -373,7 +384,9 @@ static int writeToLocalRead(struct android_log_logger_list* logger_list,
   struct listnode* node;
   unsigned logMask;
 
+//  pthread_rwlock_rdlock(&logbuf.listLock);
   if (!logbuf.serviceName) {
+//    pthread_rwlock_unlock(&logbuf.listLock);
     return (logger_list->mode & ANDROID_LOG_NONBLOCK) ? -ENODEV : 0;
   }
 
@@ -408,12 +421,15 @@ static int writeToLocalRead(struct android_log_logger_list* logger_list,
   transp->context.node = node;
 
   /* ToDo: if blocking, and no entry, put reader to sleep */
+//  pthread_rwlock_unlock(&logbuf.listLock);
   return ret;
 }
 
 static int writeToLocalPoll(struct android_log_logger_list* logger_list,
                             struct android_log_transport_context* transp) {
   int ret = (logger_list->mode & ANDROID_LOG_NONBLOCK) ? -ENODEV : 0;
+
+//  pthread_rwlock_rdlock(&logbuf.listLock);
 
   if (logbuf.serviceName) {
     unsigned logMask = transp->logMask;
@@ -431,13 +447,17 @@ static int writeToLocalPoll(struct android_log_logger_list* logger_list,
     transp->context.node = node;
   }
 
+//  pthread_rwlock_unlock(&logbuf.listLock);
+
   return ret;
 }
 
 static void writeToLocalClose(struct android_log_logger_list* logger_list
                                   __unused,
                               struct android_log_transport_context* transp) {
+//  pthread_rwlock_wrlock(&logbuf.listLock);
   transp->context.node = list_head(&logbuf.head);
+//  pthread_rwlock_unlock(&logbuf.listLock);
 }
 
 static int writeToLocalClear(struct android_log_logger* logger,
@@ -450,6 +470,7 @@ static int writeToLocalClear(struct android_log_logger* logger,
     return -EINVAL;
   }
 
+//  pthread_rwlock_wrlock(&logbuf.listLock);
   logbuf.number[logId] = 0;
   logbuf.last[logId] = &logbuf.head;
   list_for_each_safe(node, n, &logbuf.head) {
@@ -476,6 +497,8 @@ static int writeToLocalClear(struct android_log_logger* logger,
     }
   }
 
+//  pthread_rwlock_unlock(&logbuf.listLock);
+
   return 0;
 }
 
@@ -486,7 +509,9 @@ static ssize_t writeToLocalGetSize(struct android_log_logger* logger,
   log_id_t logId = logger->logId;
 
   if ((logId < NUMBER_OF_LOG_BUFFERS) && !BLOCK_LOG_BUFFERS(logId)) {
+//    pthread_rwlock_rdlock(&logbuf.listLock);
     ret = logbuf.maxSize[logId];
+//    pthread_rwlock_unlock(&logbuf.listLock);
   }
 
   return ret;
@@ -500,7 +525,9 @@ static ssize_t writeToLocalSetSize(
   if ((size > LOGGER_ENTRY_MAX_LEN) || (size < (4 * 1024 * 1024))) {
     log_id_t logId = logger->logId;
     if ((logId < NUMBER_OF_LOG_BUFFERS) || !BLOCK_LOG_BUFFERS(logId)) {
+//      pthread_rwlock_rdlock(&logbuf.listLock);
       ret = logbuf.maxSize[logId] = size;
+//      pthread_rwlock_unlock(&logbuf.listLock);
     }
   }
 
@@ -512,9 +539,10 @@ static ssize_t writeToLocalGetReadbleSize(
     struct android_log_transport_context* transp __unused) {
   ssize_t ret = -EINVAL;
   log_id_t logId = logger->logId;
-
   if ((logId < NUMBER_OF_LOG_BUFFERS) && !BLOCK_LOG_BUFFERS(logId)) {
+//    pthread_rwlock_rdlock(&logbuf.listLock);
     ret = logbuf.serviceName ? (ssize_t)logbuf.size[logId] : -EBADF;
+//    pthread_rwlock_unlock(&logbuf.listLock);
   }
 
   return ret;

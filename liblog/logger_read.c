@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+//#include <pthread.h>
 #include <sched.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -214,6 +215,11 @@ LIBLOG_ABI_PUBLIC int android_logger_set_prune_list(
 
 LIBLOG_HIDDEN struct listnode __android_log_readers = { &__android_log_readers,
                                                         &__android_log_readers };
+//#if !defined(_WIN32)
+//LIBLOG_HIDDEN pthread_rwlock_t __android_log_readers_lock =
+//    PTHREAD_RWLOCK_INITIALIZER;
+//#endif
+
 LIBLOG_ABI_PUBLIC struct logger_list* android_logger_list_alloc(
     int mode, unsigned int tail, pid_t pid) {
   struct android_log_logger_list* logger_list;

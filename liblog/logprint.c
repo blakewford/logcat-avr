@@ -40,9 +40,7 @@
 #include <log/logprint.h>
 
 #include "log_portability.h"
-#ifdef __AVR__
-#include <avr/io.h>
-#endif
+
 #define MS_PER_NSEC 1000000
 #define US_PER_NSEC 1000
 
@@ -929,10 +927,8 @@ static int android_log_printBinaryEvent(const unsigned char** pEventData,
           break;
         case TYPE_MONOTONIC: {
           static const uint64_t minute = 60;
-//          static const uint64_t hour = 60 * minute;
-//          static const uint64_t day = 24 * hour;
-          const uint64_t hour = 60 * minute;
-          const uint64_t day = 24 * hour;
+                 const uint64_t hour = 60 * minute;
+                 const uint64_t day = 24 * hour;
 
           /* Repaint as unsigned seconds, minutes, hours ... */
           outBuf -= outCount;

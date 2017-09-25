@@ -15,6 +15,7 @@
 */
 
 #include <ctype.h>
+//#include <pthread.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,8 @@
 
 #include "log_portability.h"
 
+//static pthread_mutex_t lock_loggable = PTHREAD_MUTEX_INITIALIZER;
+
 static int lock() {
   /*
    * If we trigger a signal handler in the middle of locked activity and the
@@ -36,10 +39,11 @@ static int lock() {
    * in less time than the system call associated with a mutex to deal with
    * the contention.
    */
-  return 0;
+  return 0;//pthread_mutex_trylock(&lock_loggable);
 }
 
 static void unlock() {
+//  pthread_mutex_unlock(&lock_loggable);
 }
 
 struct cache {
@@ -309,6 +313,7 @@ LIBLOG_ABI_PUBLIC int __android_log_is_debuggable() {
  * Use a separate lock from is_loggable to keep contention down b/25563384.
  */
 struct cache2_char {
+//  pthread_mutex_t lock;
   uint32_t serial;
   const char* key_persist;
   struct cache_char cache_persist;
@@ -322,6 +327,11 @@ static inline unsigned char do_cache2_char(struct cache2_char* self) {
   int change_detected;
   unsigned char c;
 
+//  if (pthread_mutex_trylock(&self->lock)) {
+    /* We are willing to accept some race in this context */
+//    return self->evaluate(self);
+//  }
+
   change_detected = check_cache(&self->cache_persist.cache) ||
                     check_cache(&self->cache_ro.cache);
   current_serial = __system_property_area_serial();
@@ -334,6 +344,8 @@ static inline unsigned char do_cache2_char(struct cache2_char* self) {
     self->serial = current_serial;
   }
   c = self->evaluate(self);
+
+//  pthread_mutex_unlock(&self->lock);
 
   return c;
 }
@@ -510,6 +522,7 @@ LIBLOG_ABI_PRIVATE bool __android_logger_valid_buffer_size(unsigned long value) 
 }
 
 struct cache2_property_size {
+//  pthread_mutex_t lock;
   uint32_t serial;
   const char* key_persist;
   struct cache_property cache_persist;
@@ -524,6 +537,11 @@ static inline unsigned long do_cache2_property_size(
   int change_detected;
   unsigned long v;
 
+//  if (pthread_mutex_trylock(&self->lock)) {
+    /* We are willing to accept some race in this context */
+//    return self->evaluate(self);
+//  }
+
   change_detected = check_cache(&self->cache_persist.cache) ||
                     check_cache(&self->cache_ro.cache);
   current_serial = __system_property_area_serial();
@@ -536,6 +554,8 @@ static inline unsigned long do_cache2_property_size(
     self->serial = current_serial;
   }
   v = self->evaluate(self);
+
+//  pthread_mutex_unlock(&self->lock);
 
   return v;
 }

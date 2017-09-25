@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <math.h>
 #include <sched.h>
+//#include <pthread.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +44,8 @@
 //#include <android-base/properties.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+//#include <cutils/sched_policy.h>
+//#include <cutils/sockets.h>
 #include <log/event_tag_map.h>
 #include <log/getopt.h>
 #include <log/logcat.h>
@@ -50,10 +53,9 @@
 #include <private/android_logger.h>
 #include <system/thread_defs.h>
 
-#define DEFAULT_MAX_ROTATED_LOGS 4
+//#include <pcrecpp.h>
 
-#define __printflike(x,y)
-extern "C" int set_sched_policy(int tid, int policy);
+#define DEFAULT_MAX_ROTATED_LOGS 4
 
 struct log_device_t {
     const char* device;
@@ -92,6 +94,7 @@ struct android_logcat_context_internal {
     int fds[2];    // From popen call
     FILE* output;  // everything writes to fileno(output), buffer unused
     FILE* error;   // unless error == output.
+//    pthread_t thr;
     volatile std::atomic_bool stop;  // quick exit flag
     volatile std::atomic_bool thread_stopped;
     bool stderr_null;    // shell "2>/dev/null"
@@ -107,6 +110,7 @@ struct android_logcat_context_internal {
     size_t outByteCount;
     int printBinary;
     int devCount;  // >1 means multiple
+//    pcrecpp::RE* regex;
     log_device_t* devices;
     EventTagMap* eventTagMap;
     // 0 means "infinite"
@@ -295,6 +299,15 @@ void printBinary(android_logcat_context_internal* context, struct log_msg* buf) 
 
     TEMP_FAILURE_RETRY(write(context->output_fd, buf, size));
 }
+
+//static bool regexOk(android_logcat_context_internal* context,
+//                    const AndroidLogEntry& entry) {
+//    if (!context->regex) return true;
+
+//    std::string messageString(entry.message, entry.messageLen);
+
+//    return context->regex->PartialMatch(messageString);
+//}
 
 static void processBuffer(android_logcat_context_internal* context,
                           log_device_t* dev, struct log_msg* buf) {
@@ -1002,6 +1015,7 @@ static int __logcat(android_logcat_context_internal* context) {
                 break;
 
             case 'e':
+               context->regex = new pcrecpp::RE(optctx.optarg);
                break;
 
             case 'm': {
@@ -1200,8 +1214,7 @@ static int __logcat(android_logcat_context_internal* context) {
                         goto exit;
                     //}
 
-                    //std::string cmdline = android::base::GetProperty(QEMU_CMDLINE, "");
-                    std::string cmdline;
+                    std::string cmdline;// = android::base::GetProperty(QEMU_CMDLINE, "");
                     if (cmdline.empty()) {
                         android::base::ReadFileToString("/proc/cmdline", &cmdline);
                     }
@@ -1707,8 +1720,20 @@ int android_logcat_run_command_thread(android_logcat_context ctx,
         goto exit;
     }
 
+//    pthread_attr_t attr;
+//    if (pthread_attr_init(&attr)) {
+//       save_errno = errno;
+//        goto close_exit;
+//    }
+
     struct sched_param param;
     memset(&param, 0, sizeof(param));
+//    pthread_attr_setschedparam(&attr, &param);
+//    pthread_attr_setschedpolicy(&attr, SCHED_BATCH);
+//    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) {
+//        save_errno = errno;
+//        goto pthread_attr_exit;
+//    }
 
     context->stop = false;
     context->thread_stopped = false;
@@ -1744,6 +1769,12 @@ int android_logcat_run_command_thread(android_logcat_context ctx,
     fflush(stderr);
 #endif
     context->retval = EXIT_SUCCESS;
+//    if (pthread_create(&context->thr, &attr,
+//                       (void*(*)(void*))__logcat, context)) {
+//        save_errno = errno;
+//        goto argv_exit;
+//    }
+//    pthread_attr_destroy(&attr);
 
     return context->fds[0];
 
@@ -1752,6 +1783,8 @@ argv_exit:
     context->args.clear();
     context->envp_hold.clear();
     context->envs.clear();
+//pthread_attr_exit:
+//    pthread_attr_destroy(&attr);
 close_exit:
     close(context->fds[0]);
     context->fds[0] = -1;
@@ -1787,6 +1820,7 @@ int android_logcat_destroy(android_logcat_context* ctx) {
         sched_yield();
     }
 
+//    delete context->regex;
     context->argv_hold.clear();
     context->args.clear();
     context->envp_hold.clear();

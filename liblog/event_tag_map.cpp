@@ -34,6 +34,7 @@
 #include <log/log_properties.h>
 #include <private/android_logger.h>
 #include <utils/FastStrcmp.h>
+//#include <utils/RWLock.h>
 
 #include "log_portability.h"
 #include "logd_reader.h"
@@ -123,6 +124,7 @@ struct EventTagMap {
   std::unordered_map<TagFmt, uint32_t> TagFmt2Idx;
   std::unordered_map<MapString, uint32_t> Tag2Idx;
   // protect unordered sets
+//  android::RWLock rwlock;
 
  public:
   EventTagMap() {
@@ -154,6 +156,7 @@ bool EventTagMap::emplaceUnique(uint32_t tag, const TagFmt& tagfmt,
   static const char errorFormat[] =
       OUT_TAG ": duplicate tag entries %" PRIu32 ":%.*s:%.*s and %" PRIu32
               ":%.*s:%.*s)\n";
+//  android::RWLock::AutoWLock writeLock(rwlock);
   {
     std::unordered_map<uint32_t, TagFmt>::const_iterator it;
     it = Idx2TagFmt.find(tag);
@@ -205,6 +208,7 @@ bool EventTagMap::emplaceUnique(uint32_t tag, const TagFmt& tagfmt,
 
 const TagFmt* EventTagMap::find(uint32_t tag) const {
   std::unordered_map<uint32_t, TagFmt>::const_iterator it;
+//  android::RWLock::AutoRLock readLock(const_cast<android::RWLock&>(rwlock));
   it = Idx2TagFmt.find(tag);
   if (it == Idx2TagFmt.end()) return NULL;
   return &(it->second);
@@ -212,6 +216,7 @@ const TagFmt* EventTagMap::find(uint32_t tag) const {
 
 int EventTagMap::find(TagFmt&& tagfmt) const {
   std::unordered_map<TagFmt, uint32_t>::const_iterator it;
+//  android::RWLock::AutoRLock readLock(const_cast<android::RWLock&>(rwlock));
   it = TagFmt2Idx.find(std::move(tagfmt));
   if (it == TagFmt2Idx.end()) return -1;
   return it->second;
@@ -219,6 +224,7 @@ int EventTagMap::find(TagFmt&& tagfmt) const {
 
 int EventTagMap::find(MapString&& tag) const {
   std::unordered_map<MapString, uint32_t>::const_iterator it;
+//  android::RWLock::AutoRLock readLock(const_cast<android::RWLock&>(rwlock));
   it = Tag2Idx.find(std::move(tag));
   if (it == Tag2Idx.end()) return -1;
   return it->second;

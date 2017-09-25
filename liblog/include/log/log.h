@@ -19,6 +19,7 @@
 
 /* Too many in the ecosystem assume these are included */
 #if !defined(_WIN32)
+//#include <pthread.h>
 #endif
 #include <stdint.h> /* uint16_t, int32_t */
 #include <stdio.h>
