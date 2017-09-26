@@ -3,23 +3,24 @@ CPP=logcat2.cpp
 
 DEVICE=atmega1284
 
-DEBUG=-gdwarf-4
+DEBUG=
+OPTIM=-Os
 
 logcat: liblogcat.a
-	clang++ $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt
+	clang++ $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt
 
 liblogcat.a: $(CPP)
 	-mkdir out
-	clang $(DEBUG) -c -std=c++1y -fPIC $(CPP) -I../include -Iinclude -I../base/include
+	clang $(OPTIM) $(DEBUG) -c -std=c++1y -fPIC $(CPP) -I../include -Iinclude -I../base/include
 	mv *.o out
 	ar rcs out/$@ out/*.o
 
 logcat-avr: liblogcat-avr.a
-	avr-gcc $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat-avr -L../liblog/out/avr -llog-avr -mmcu=$(DEVICE)
+	avr-gcc $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat-avr -L../liblog/out/avr -llog-avr -mmcu=$(DEVICE)
 
 liblogcat-avr.a: $(CPP)
 	-mkdir out
-	avr-gcc $(DEBUG) -c -include../include/port/port.h -include stdlib.h -std=c++1y $(CPP) -I/usr/lib/avr/include -I../include/port -I../include -Iinclude -I../base/include -mmcu=$(DEVICE)
+	avr-gcc $(OPTIM) $(DEBUG) -c -include../include/port/port.h -include stdlib.h -std=c++1y $(CPP) -I/usr/lib/avr/include -I../include/port -I../include -Iinclude -I../base/include -mmcu=$(DEVICE)
 	mv *.o out
 	ar rcs out/$@ out/*.o
 
