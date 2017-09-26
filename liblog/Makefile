@@ -4,7 +4,7 @@ CPP=event_tag_map.cpp log_time.cpp sched_policy.cpp
 
 DEVICE=atmega1284
 DEBUG=
-OPTIM=-Os
+OPTIM=-Ofast
 
 liblog.a: compile
 	ar rcs out/android/$@ out/android/*.o
