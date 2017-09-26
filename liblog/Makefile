@@ -2,7 +2,7 @@ C=properties.c pmsg_reader.c pmsg_writer.c logd_reader.c logd_writer.c config_re
 
 CPP=event_tag_map.cpp log_time.cpp sched_policy.cpp
 
-DEVICE=atmega128
+DEVICE=atmega1284
 DEBUG=-gdwarf-4
 
 liblog.a: compile

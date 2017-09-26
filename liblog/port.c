@@ -164,10 +164,11 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-  const char *c = buf;
+  const char* c = "09-25 23:37:58.000 15225 15225 D MDnsDS  : MDnsSdListener::Hander starting up\n";
+  count = strlen(c);
   while(count--)
   {
-    UDR0 = c;
+    UDR0 = *c;
     c++;
   }
 
