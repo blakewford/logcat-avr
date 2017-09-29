@@ -82,7 +82,9 @@ struct android_logcat_context_internal {
 };
 
 #define DEFAULT_MAX_ROTATED_LOGS 4
+#ifndef __ANDROID__
 #define __printflike(x,y)
+#endif
 
 // Creates a context associated with this logcat instance
 android_logcat_context create_android_logcat() {

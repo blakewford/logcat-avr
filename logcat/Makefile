@@ -4,7 +4,7 @@ CPP=logcat2.cpp
 DEVICE=atmega1284
 
 DEBUG=
-OPTIM=-Ofast
+OPTIM=
 
 logcat: liblogcat.a
 	clang++ $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt
