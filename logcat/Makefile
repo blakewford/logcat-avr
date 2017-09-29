@@ -3,7 +3,7 @@ CPP=logcat2.cpp
 
 DEVICE=atmega1284
 
-DEBUG=
+DEBUG=-gdwarf-4
 OPTIM=
 
 logcat: liblogcat.a

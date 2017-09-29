@@ -4,7 +4,7 @@ CPP=event_tag_map.cpp log_time.cpp sched_policy.cpp
 
 FLAGS=-fvisibility=hidden -DLIBLOG_LOG_TAG=1006 -DSNET_EVENT_LOG_TAG=1397638484 -w
 DEVICE=atmega1284
-DEBUG=
+DEBUG=-gdwarf-4
 OPTIM=
 
 liblog.a: compile
