@@ -9,6 +9,7 @@ CC=gcc
 
 logcat: liblogcat.a
 	$(CC) $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt -lm -fno-inline
+	objcopy -g -Ielf64-x86-64 -Oelf64-x86-64 out/logcat out/logcat-stripped
 
 liblogcat.a: $(CPP)
 	-mkdir out
@@ -18,6 +19,7 @@ liblogcat.a: $(CPP)
 
 logcat-avr: liblogcat-avr.a
 	avr-gcc $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat-avr -L../liblog/out/avr -llog-avr -mmcu=$(DEVICE)
+	avr-objcopy -g -Ielf32-avr -Oelf32-avr out/logcat-avr out/logcat-avr-stripped
 
 liblogcat-avr.a: $(CPP)
 	-mkdir out
