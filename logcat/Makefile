@@ -17,8 +17,8 @@ liblogcat.a: $(CPP)
 	mv *.o out
 	ar rcs out/$@ out/*.o
 
-logcat-avr: liblogcat-avr.a
-	avr-gcc $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -I../include/port -Iinclude -Lout -llogcat-avr -L../liblog/out/avr -llog-avr -mmcu=$(DEVICE)
+avr: liblogcat-avr.a
+	avr-gcc $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/logcat-avr -I../include/port -Iinclude -Lout -llogcat-avr -L../liblog/out/avr -llog-avr -mmcu=$(DEVICE)
 	avr-objcopy -g -Ielf32-avr -Oelf32-avr out/logcat-avr out/logcat-avr-stripped
 
 liblogcat-avr.a: $(CPP)
@@ -27,5 +27,9 @@ liblogcat-avr.a: $(CPP)
 	mv *.o out
 	ar rcs out/$@ out/*.o
 
+android:
+	~/Android/Sdk/ndk-bundle/ndk-build
+
 clean:
 	rm -rf out
+	~/Android/Sdk/ndk-bundle/ndk-build clean

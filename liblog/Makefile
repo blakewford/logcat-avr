@@ -11,8 +11,8 @@ CC=gcc
 liblog.a: compile
 	ar rcs out/android/$@ out/android/*.o
 
-liblog-avr.a: compile-avr
-	ar rcs out/avr/$@ out/avr/*.o
+avr: compile-avr
+	ar rcs out/avr/liblog-avr.a out/avr/*.o
 
 compile: $(C) $(CPP)
 	-mkdir out
@@ -27,5 +27,10 @@ compile-avr: $(C) $(CPP)
 	avr-gcc $(OPTIM) $(DEBUG) $(C) port.c -c -include avr/io.h -include../include/port/port.h -I/usr/lib/avr/include -I/usr/lib/gcc/avr/4.9.2/include -include sys/types.h -include stdlib.h -I../include/port -I../include -Iinclude -mmcu=$(DEVICE) $(FLAGS)
 	mv *.o out/avr
 
+android:
+	~/Android/Sdk/ndk-bundle/ndk-build
+
 clean:
 	rm -rf out
+	~/Android/Sdk/ndk-bundle/ndk-build clean
+
