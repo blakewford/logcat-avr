@@ -5,13 +5,14 @@ DEVICE=atmega1284
 
 DEBUG=-gdwarf-4
 OPTIM=
+CC=gcc
 
 logcat: liblogcat.a
-	clang++ $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt
+	$(CC) $(OPTIM) $(DEBUG) -std=c++1y logcat_main.cpp -o out/$@ -Iinclude -Lout -llogcat -lpcrecpp -L../liblog/out/android -llog -lrt -lm -fno-inline
 
 liblogcat.a: $(CPP)
 	-mkdir out
-	clang $(OPTIM) $(DEBUG) -c -std=c++1y -fPIC $(CPP) -I../include -Iinclude -I../base/include
+	$(CC) $(OPTIM) $(DEBUG) -c -std=c++1y -fPIC $(CPP) -I../include -Iinclude -I../base/include -fno-inline
 	mv *.o out
 	ar rcs out/$@ out/*.o
 

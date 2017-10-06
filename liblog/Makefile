@@ -2,10 +2,11 @@ C=properties.c pmsg_reader.c pmsg_writer.c logd_reader.c logd_writer.c config_re
 
 CPP=event_tag_map.cpp log_time.cpp sched_policy.cpp
 
-FLAGS=-fvisibility=hidden -DLIBLOG_LOG_TAG=1006 -DSNET_EVENT_LOG_TAG=1397638484 -w
+FLAGS=-fvisibility=hidden -DLIBLOG_LOG_TAG=1006 -DSNET_EVENT_LOG_TAG=1397638484 -w -fpermissive
 DEVICE=atmega1284
 DEBUG=-gdwarf-4
 OPTIM=
+CC=gcc
 
 liblog.a: compile
 	ar rcs out/android/$@ out/android/*.o
@@ -16,8 +17,8 @@ liblog-avr.a: compile-avr
 compile: $(C) $(CPP)
 	-mkdir out
 	-mkdir out/android
-	clang $(OPTIM) $(DEBUG) $(C) -c -Iinclude -I../include -include limits.h -include unistd.h -include sys/user.h -include signal.h $(FLAGS)
-	clang $(OPTIM) $(DEBUG) -std=c++1y $(CPP) -c -Iinclude -I../include -include string.h
+	$(CC) $(OPTIM) $(DEBUG) $(C) -c -Iinclude -I../include -include limits.h -include unistd.h -include sys/user.h -include signal.h $(FLAGS)
+	$(CC) $(OPTIM) $(DEBUG) -std=c++1y $(CPP) -c -Iinclude -I../include -include string.h -fpermissive
 	mv *.o out/android
 
 compile-avr: $(C) $(CPP)
