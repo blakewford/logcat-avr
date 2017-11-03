@@ -164,13 +164,15 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
 
 ssize_t write(int fd, const void *buf, size_t count)
 {
-  const char* c = "09-25 23:37:58.000 15225 15225 D MDnsDS  : MDnsSdListener::Hander starting up\n";
-  count = strlen(c);
-  while(count--)
-  {
-    UDR0 = *c;
-    c++;
-  }
+    char* c = (const char*)buf;
+    while(count--)
+    {
+        // Wait for empty transmit buffer
+        while ( !( UCSR1A & (1<<UDRE1)) )
+            ;
+        UDR0 = *c;
+        c++;
+    }
 
-  return 0;
+    return 0;
 }

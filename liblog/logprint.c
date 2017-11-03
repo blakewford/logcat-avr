@@ -1853,11 +1853,18 @@ LIBLOG_ABI_PUBLIC int android_log_printLogLine(AndroidLogFormat* p_format,
   char* outBuffer = NULL;
   size_t totalLen;
 
+#ifndef __AVR__
   outBuffer = android_log_formatLogLine(
       p_format, defaultBuffer, sizeof(defaultBuffer), entry, &totalLen);
 
   if (!outBuffer) return -1;
-
+#else
+  const char* demo = "09-25 23:37:58.000 15225 15225 D MDnsDS  : MDnsSdListener::Hander starting up\n";
+  strcpy(defaultBuffer, demo);
+  totalLen = strlen(demo);
+  defaultBuffer[totalLen] = '\0';
+  outBuffer = defaultBuffer;
+#endif
   do {
     ret = write(fd, outBuffer, totalLen);
   } while (ret < 0 && errno == EINTR);
