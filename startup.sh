@@ -1,1 +1,1 @@
-( cat ) | gdb logcat/out/logcat -x ./script
+( cat ) | gdb logcat/out/logcat-stripped -x ./script
