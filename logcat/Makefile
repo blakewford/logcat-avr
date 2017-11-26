@@ -1,7 +1,7 @@
 #CPP=logcat.cpp
 CPP=logcat2.cpp
 
-DEVICE=atmega1284
+DEVICE=atmega2560
 
 DEBUG=-gdwarf-4
 OPTIM=

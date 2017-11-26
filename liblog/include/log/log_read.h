@@ -135,7 +135,7 @@ struct logger_entry_v4 {
  * An attempt to read less than this amount may result
  * in read() returning EINVAL.
  */
-#define LOGGER_ENTRY_MAX_LEN (2 * 1024) + 704
+#define LOGGER_ENTRY_MAX_LEN (2 * 1024) + 512
 
 #ifndef __struct_log_msg_defined
 #define __struct_log_msg_defined
