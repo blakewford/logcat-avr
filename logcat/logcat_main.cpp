@@ -14,12 +14,38 @@
  * limitations under the License.
  */
 
+#include <stdint.h>
 #include <signal.h>
 #include <stdlib.h>
 
 #include <log/logcat.h>
 
+#ifdef __AVR__
+#include <avr/io.h>
+#endif
+
+__attribute__ ((optimize(3)))
+void delay(uint32_t milliseconds)
+{
+    uint32_t cycles = (milliseconds*2280);
+    while(cycles--)
+    {
+        asm volatile("nop");
+    }
+}
+
 int main(int argc, char** argv, char** envp) {
+
+#ifdef __AVR__
+    //Set as output pin
+    DDRB = _BV(7);
+    //Set LED
+    PORTB = 0x80;
+    delay(5000);
+    //Clear LED
+    PORTB = 0x00;
+#endif
+
     android_logcat_context ctx = create_android_logcat();
     if (!ctx) return -1;
 //    signal(SIGPIPE, exit);
